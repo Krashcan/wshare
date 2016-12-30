@@ -5,7 +5,7 @@ This was an assignment in https://thewhitetulip.gitbooks.io/webapp-with-golang-a
 
 Make sure %GOPATH%/bin is in your path. 
     
-    go build 
+    go build wshare
     wshare -help 
     
 to get started
