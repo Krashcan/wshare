@@ -3,44 +3,41 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"net/http"
 	"net"
 	"strings"
+	"flag"
 )
 
-var fileName string
-var tag string
 func main() {
-	tag = os.Args[1]
-	//dont look for file name when user is looking up help
-	if tag!= "-help"{
-		fileName = os.Args[2]
-	}
+	//flag to specify whether we will be uploading folder or a single file
+	folder := flag.Bool("f",false,"Use for serving folders on the server")
+	
+	flag.Parse()
+	
 
-	//logic for various tags
-	if tag=="-f"{//for sharing folders
-		http.Handle("/",http.StripPrefix("/",http.FileServer(http.Dir(fileName))))
-		fmt.Printf("Sharing on %s:8080\n",GetOutboundIP())
-	}else if tag=="-s"{//for sharing files
-		http.HandleFunc("/",ShareFile)
-		fmt.Printf("Sharing on %s:8080\n",GetOutboundIP())	
-	}else if tag=="-help"{
-		fmt.Println("\n\twshare -f <absolute folder path> for folders\n\twshare -s <absolute file path> for files")
+	if len(flag.Args())>0{
+		if *folder{
+			http.Handle("/",http.StripPrefix("/",http.FileServer(http.Dir(flag.Args()[0]))))
+			fmt.Printf("Sharing folder on %s:8080\n",GetOutboundIP())
+		}else{
+			http.HandleFunc("/",ShareFile)
+			fmt.Printf("Sharing file on %s:8080\n",GetOutboundIP())
+		}
+		
+		log.Fatal(http.ListenAndServe(":8080",nil))
 	}else{
-		fmt.Println("\nCommand not found\n\twshare -help,for complete list of commands")
+		fmt.Println("Invalid usage. No file mentioned. Use wshare -h for help.")
 	}
 	
-	//only start the server when sharing is required
-	if tag=="-f" || tag=="-s"{
-		log.Fatal(http.ListenAndServe(":8080",nil))	
-	}
 }
 
+
+//function to share files
 func ShareFile(w http.ResponseWriter,r *http.Request){
-	http.ServeFile(w,r,fileName)
+	http.ServeFile(w,r,flag.Args()[0])
 }
-
+//function to get the ip address for other devices to communicate through
 func GetOutboundIP() string {
     conn, err := net.Dial("udp", "8.8.8.8:80")
     if err != nil {
