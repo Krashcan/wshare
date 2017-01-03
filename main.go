@@ -16,8 +16,7 @@ import (
 )
 
 func main() {
-	sigs := make(chan os.Signal, 1)
-    done := make(chan bool, 1)
+	sigs := make(chan os.Signal, 3)
 
 	//flag to specify whether we will be uploading folder or a single file
 	folder := flag.Bool("f",false,"Use for serving folders on the server")
@@ -34,27 +33,23 @@ func main() {
 			if *zipped{
 				fmt.Println("zipping...")
 				flag.Args()[0]=ZipFile()
-
 				
 			}
 			http.HandleFunc("/",ShareFile)
-			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+			signal.Notify(sigs, os.Interrupt,syscall.SIGTERM,syscall.SIGINT)
 
 			go func() {
-				sig := <-sigs
-    		    fmt.Println()
-    		    fmt.Println(sig)
-    		    done <- true
+				<-sigs
+                if !(*save) && *zipped {
+					os.Remove(flag.Args()[0])
+					fmt.Println("Closing server. File Deleted.")
+					os.Exit(0)
+				}
     		}()
     		fmt.Printf("Sharing file on %s:8080\n",GetOutboundIP())
-    		<-done
-    		if !(*save) && *zipped{
-				os.Remove(flag.Args()[0])
-				return
-			}
+    		
 		}
 		log.Fatal(http.ListenAndServe(":8080",nil))
-		fmt.Println("here")
 	}else{
 		fmt.Println("Invalid usage. No file mentioned. Use wshare -h for help.")
 	}
