@@ -42,6 +42,9 @@ func main() {
 						os.Remove(flag.Args()[0])
 						fmt.Println("Closing server. File Deleted.")
 						os.Exit(0)
+					}else{
+						fmt.Println("File saved in ",flag.Args()[0])
+						os.Exit(0)
 					}
     			}()
 			}
@@ -63,7 +66,8 @@ func ShareFile(w http.ResponseWriter,r *http.Request){
 }
 
 func ZipFile() string {
-	curDir:= "E:/work/src/github.com/krashcan/wshare/tmp.zip"
+	curDir,_ := os.Getwd()
+	curDir = curDir+"/tmp.zip"
 	source := flag.Args()[0]
 
 	zipFile,err := os.Create(curDir)
