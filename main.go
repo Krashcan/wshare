@@ -38,7 +38,7 @@ func main() {
 
 				go func() {
 					<-sigs
-            	    if !(*save){
+            	                        if !(*save){
 						os.Remove(flag.Args()[0])
 						fmt.Println("Closing server. File Deleted.")
 						os.Exit(0)
